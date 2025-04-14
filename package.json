@@ -1,0 +1,20 @@
+{
+  "name": "sso_login_eds",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/pg": "^8.11.12",
+    "drizzle-kit": "^0.30.6"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.41.0",
+    "hono": "^4.7.6",
+    "ioredis": "^5.6.1",
+    "pg": "^8.14.1"
+  }
+}
