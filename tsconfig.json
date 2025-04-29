@@ -11,6 +11,7 @@
       "@controllers/*": ["src/controllers/*"],
       "@routes/*": ["src/routes/*"],
       "@middlewares/*": ["src/middlewares/*"],
-    }
+    },
+    "allowSyntheticDefaultImports": true,
   }
 }

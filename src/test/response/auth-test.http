@@ -1,0 +1,13 @@
+### Register SSO user
+@baseUrl = http://localhost:12201/api/v1/
+POST {{baseUrl}}auth/register
+Content-Type: application/json
+
+{
+  "email": "aries@erayadigital.co.id",
+  "phone": "08123456789",
+  "username": "testuser",
+  "password": "rahasia123",
+  "role": 1,
+  "registration_number": "REG-12345"
+}

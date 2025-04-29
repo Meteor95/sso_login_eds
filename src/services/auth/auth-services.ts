@@ -1,15 +1,9 @@
 import { db } from "@database/connection";
 import { sso_users  } from "@database/schema";
-import { and, eq, or, sql } from "drizzle-orm";
-//import redisHelper from "@helpers/redisHelper";
-import { env } from "bun";
-import { sign } from "hono/jwt";
+import { eq, or} from "drizzle-orm";
 
 
 export class AuthService {
-    static async processLoginSSO(data: { username: string; password: string; }) {
-        
-    }
     static async processRegisterSSO(data: { 
         uuidv7: string;
         email: string;
