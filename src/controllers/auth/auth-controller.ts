@@ -5,6 +5,46 @@ import { handleError } from '@helpers/handleError';
 import { AuthService } from '@services/auth/auth-services';
 import RSACryptoHelper from '@helpers/cryptoString';
 
+export async function loginSSO(c: Context){
+    const schema = z.object({
+        username: z.string(),
+        password: z.string().min(6),
+        fingerprint: z.string(),
+        login_from: z.string(),
+    })
+    const body = await c.req.json();
+    const data = schema.parse(body);
+    try{
+        const resultLogin = await AuthService.processLoginSSO({
+            username: data.username,
+            password: data.password,
+            fingerprint: data.fingerprint,
+            login_from: data.login_from,
+        });
+        let is_success = true;
+        let messages = `Login successful for username: ${data.username}`;
+        let dataLogin: typeof resultLogin | null = resultLogin;
+        if (!resultLogin) {
+            messages = `Login failed because the username or password is incorrect, or the account has been deleted from our database.`;
+            is_success = false;
+            dataLogin = null
+        }else{
+            if (!resultLogin.status){
+                messages = `Login failed because your account is disabled. Please contact the administrator`
+                is_success = false;
+                dataLogin = null
+            }
+        }
+        return c.json({
+            success: is_success,
+            message: messages,
+            data: dataLogin,
+        },is_success ? 200 : 401);
+    }catch (e) {
+        const error = e as Error;
+        return handleError(c, error, `Something Error when users do Login with username ${data.username}. Please contact the administrator.`);
+    }
+}
 export async function registerSSO(c: Context) {
     const schema = z.object({
         email: z.string().email(),
@@ -43,7 +83,7 @@ export async function registerSSO(c: Context) {
             success: is_success,
             message: messages,
             data: data_result,
-        },is_success ? 200 : 400);
+        },is_success ? 201 : 400);
     } catch (e) {
         const error = e as Error;
         return handleError(c, error, `Something Error when users do Register username ${data.username}. Please contact the administrator.`);

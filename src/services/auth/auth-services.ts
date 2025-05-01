@@ -1,9 +1,44 @@
 import { db } from "@database/connection";
 import { sso_users  } from "@database/schema";
-import { eq, or} from "drizzle-orm";
+import { sso_users_login } from "@database/schema/sso_users_login";
+import { eq, or, and, not, isNull } from "drizzle-orm";
+import moment from 'moment';
 
 
 export class AuthService {
+    static async processLoginSSO(data: {
+        username: string;
+        password: string;
+        fingerprint: string;
+        login_from: string;
+    }) {
+        const result = await db.transaction(async (trx) => {
+            const resultUser = await db.select()
+                .from(sso_users)
+                .where(
+                    and(
+                        eq(sso_users.username, data.username),
+                        not(isNull(sso_users.deleted_at))
+                    )
+                );
+            if (resultUser.length === 0) {
+                return false;
+            }
+            const isMatch = await Bun.password.verify(data.password, resultUser[0].password);
+            if (!isMatch) {
+                return false; 
+            }
+            await trx.insert(sso_users_login)
+                .values({
+                    user_id: resultUser[0].id,
+                    deviced_id: data.fingerprint,
+                    created_at: moment().toDate()
+                });
+        
+            return resultUser[0];
+        });
+        return result;
+    }
     static async processRegisterSSO(data: { 
         uuidv7: string;
         email: string;
@@ -36,7 +71,7 @@ export class AuthService {
             };
         }
         const hasher = new Bun.CryptoHasher("sha256");
-        hasher.update(`erakaunting_${data.uuidv7.replace(/-/g, '')}`);
+        hasher.update(`eraya_digital_${data.uuidv7.replace(/-/g, '')}`);
         const result = await db.insert(sso_users)
             .values({
                 uuid: data.uuidv7,

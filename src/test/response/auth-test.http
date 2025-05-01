@@ -11,3 +11,13 @@ Content-Type: application/json
   "role": 1,
   "registration_number": "REG-12345"
 }
+### Login SSO user
+POST {{baseUrl}}auth/login
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "rahasia123",
+  "fingerprint": "REG-12345",
+  "login_from": "web",
+}
