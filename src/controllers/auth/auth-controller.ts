@@ -59,7 +59,7 @@ export async function registerSSO(c: Context) {
     try {
         const bcryptHashPassword = await Bun.password.hash(data.password, {
             algorithm: "bcrypt",
-            cost: process.env.BCRYPT_COST ? parseInt(process.env.BCRYPT_COST) : 10,
+            cost: process.env.BCRYPT_COST ? parseInt(process.env.BCRYPT_COST) : 12,
         });
         const resultRegister = await AuthService.processRegisterSSO({
             uuidv7: randomUUIDv7(),

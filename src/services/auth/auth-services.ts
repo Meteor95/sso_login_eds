@@ -1,7 +1,7 @@
 import { db } from "@database/connection";
-import { sso_users  } from "@database/schema";
-import { sso_users_login } from "@database/schema/sso_users_login";
-import { eq, or, and, not, isNull } from "drizzle-orm";
+import { sso_users, sso_sessions, sso_users_login  } from "@database/schema";
+import { eq, or, and, isNull } from "drizzle-orm";
+import { pick } from "@helpers/objectHelper"
 import moment from 'moment';
 
 
@@ -14,19 +14,31 @@ export class AuthService {
     }) {
         const result = await db.transaction(async (trx) => {
             const resultUser = await db.select()
-                .from(sso_users)
-                .where(
-                    and(
+            .from(sso_users)
+            .where(
+                and(
+                    or(
                         eq(sso_users.username, data.username),
-                        not(isNull(sso_users.deleted_at))
-                    )
-                );
+                        eq(sso_users.email, data.username)
+                    ),
+                isNull(sso_users.deleted_at)
+                )
+            );
             if (resultUser.length === 0) {
-                return false;
+                return 0;
+            }
+            if (!resultUser[0].status){
+                return -2;
             }
             const isMatch = await Bun.password.verify(data.password, resultUser[0].password);
             if (!isMatch) {
-                return false; 
+                return 0;
+            }
+            const client = await db.query.sso_sessions.findFirst({
+                where: (c, { eq }) => eq(c.user_id, resultUser[0].id),
+            });
+            if (!client) {
+                return -3;
             }
             await trx.insert(sso_users_login)
                 .values({
@@ -34,8 +46,8 @@ export class AuthService {
                     deviced_id: data.fingerprint,
                     created_at: moment().toDate()
                 });
-        
-            return resultUser[0];
+            
+            return pick(resultUser[0], ["uuid", "email", "username","status","registration_number","phone"]);
         });
         return result;
     }
