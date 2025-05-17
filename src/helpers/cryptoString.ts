@@ -1,6 +1,6 @@
 import { Buffer } from "node:buffer";
 import * as crypto from "node:crypto";
-import { env } from "bun";
+import { env } from "@helpers/env";
 
 class RSACryptoHelper {
   // Fungsi untuk mengenkripsi token dengan kunci publik

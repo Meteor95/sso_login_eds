@@ -21,25 +21,36 @@ export async function loginSSO(c: Context){
             fingerprint: data.fingerprint,
             login_from: data.login_from,
         });
-        let is_success = true;
-        let messages = `Login successful for username: ${data.username}`;
-        let dataLogin: typeof resultLogin | null = resultLogin;
-        if (!resultLogin) {
-            messages = `Login failed because the username or password is incorrect, or the account has been deleted from our database.`;
+        let messages = `Login successful for username : ${data.username}`, is_success = true;
+        if(resultLogin == 0) {
+            messages = `Login failed because username or password is incorrect.`;
             is_success = false;
-            dataLogin = null
-        }else{
-            if (!resultLogin.status){
-                messages = `Login failed because your account is disabled. Please contact the administrator`
-                is_success = false;
-                dataLogin = null
-            }
         }
-        return c.json({
-            success: is_success,
-            message: messages,
-            data: dataLogin,
-        },is_success ? 200 : 401);
+        if(resultLogin == -1) {
+            messages = `Login failed because maximum login attempts has reached. Please logout in other device.`;
+            is_success = false;
+        }
+        if(resultLogin == -2) {
+            messages = `Login failed because account is not active or banned. Please contact the administrator.`;
+            is_success = false;
+        }
+        let response;
+        if (typeof resultLogin !== "number" && resultLogin.token && resultLogin.uuid) {
+            response = new Response(
+                JSON.stringify({
+                    success: is_success,
+                    message: messages,
+                    data: resultLogin,
+                }),
+                {
+                    status: is_success ? 200 : 401,
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                }
+            );
+        }
+        return response;
     }catch (e) {
         const error = e as Error;
         return handleError(c, error, `Something Error when users do Login with username ${data.username}. Please contact the administrator.`);
